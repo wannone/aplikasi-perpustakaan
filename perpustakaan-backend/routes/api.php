@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BukuController;
 use App\Http\Controllers\API\KategoriController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\RolesController;
 
 Route::middleware('auth:api')->get('/auth', function (Request $request) {
     return $request->user();
@@ -32,6 +33,8 @@ Route::delete('/kategori/{id}', [KategoriController::class, 'destroy']);
 
 Route::get('/user', [UserController::class, 'index']);
 
+Route::get('/user/{id}', [UserController::class, 'show']);
+
 Route::post('/user/register', [UserController::class, 'register']);
 
 Route::post('/user/login', [UserController::class, 'login']);
@@ -39,3 +42,7 @@ Route::post('/user/login', [UserController::class, 'login']);
 Route::post('/user/logout', [UserController::class, 'logout']);
 
 Route::put('/user/{id}', [UserController::class, 'update']);
+
+Route::delete('/user/{id}', [UserController::class, 'destroy']);
+
+Route::get('/roles', [RolesController::class, 'index']);

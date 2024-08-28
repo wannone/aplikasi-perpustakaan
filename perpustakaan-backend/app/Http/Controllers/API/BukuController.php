@@ -20,8 +20,8 @@ class BukuController extends Controller
     $buku = $buku->map(function($item) {
         return [
             'buku_id' => $item->buku_id,
-            'kategori' => $item->kategori->nama, // Ambil nama kategori
             'nama' => $item->nama,
+            'kategori' => $item->kategori->nama, // Ambil nama kategori
             'isbn' => $item->isbn,
             'pengarang' => $item->pengarang,
             'sinopsis' => $item->sinopsis,
@@ -57,11 +57,15 @@ class BukuController extends Controller
                 'isbn' => 'required|string|max:255',
                 'pengarang' => 'required|string|max:255',
                 'sinopsis' => 'required',
-                'stok' => 'required|integer|min:0',
+                'stok' => 'required|integer|min:1',
                 'foto' => 'required|string|max:255',
             ]);
     
             Buku::create($request->all());
+
+            Kategori::where('kategori_id', $request->kategori_id)->update([
+                'is_available' => 1,
+            ]);
     
             return response()->json([
                 'status' => 'success',
@@ -172,6 +176,12 @@ class BukuController extends Controller
                 'status' => 'error',
                 'message' => 'Buku tidak ditemukan',
             ], 404); // HTTP status code 404 for not found
+        }
+
+        if (Buku::where('kategori_id', $buku->kategori_id)->count() == 0) {
+            Kategori::where('kategori_id', $buku->kategori_id)->update([
+                'is_available' => 0,
+            ]);
         }
 
         $buku->delete();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Models\Roles;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +18,16 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::all();
+        $users = User::with("role")->get();
+
+        $users = $users->map(function($item) {
+            return [
+                'user_id' => $item->user_id,
+                'role' => $item->role->nama,
+                'nama' => $item->nama,
+                'email' => $item->email,
+            ];
+        });
 
         return response()->json([
             'success' => true,
@@ -109,6 +119,7 @@ class UserController extends Controller
        
     }
 
+
     public function logout(Request $request)
     {        
         //remove token
@@ -146,6 +157,17 @@ class UserController extends Controller
             'success' => false,
             'message' => 'User tidak ditemukan',
         ], 404);    
+    }
+
+    public function show (int $id) {
+        $user = User::find($id);
+    
+        if ($user) {
+            return response()->json([
+                'success' => true,
+                'data'    => $user
+            ]);
+        }
     }
 
     public function destroy(int $id)

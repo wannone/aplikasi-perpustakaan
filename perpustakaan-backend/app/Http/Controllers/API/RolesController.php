@@ -13,7 +13,12 @@ class RolesController extends Controller
      */
     public function index()
     {
-        //
+        $roles = roles::get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $roles,
+        ]);
     }
 
     /**

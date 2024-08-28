@@ -37,12 +37,11 @@ class KategoriController extends Controller
         try {
             $request->validate([
                 'nama' => 'required|string|max:255',
-                'is_available' => 'required|integer|min:0|max:1',
             ]);
     
             Kategori::create([
                 'nama' => $request->nama,
-                'is_available' => $request->is_available,
+                'is_available' => 0,
             ]);
     
             return response()->json([
@@ -110,12 +109,10 @@ class KategoriController extends Controller
 
             $request->validate([
                 'nama' => 'required|string|max:255',
-                'is_available' => 'required|integer|min:0|max:1',
             ]);
     
             $kategori->update([
                 'nama' => $request->nama,
-                'is_available' => $request->is_available,
             ]);
     
             return response()->json([
