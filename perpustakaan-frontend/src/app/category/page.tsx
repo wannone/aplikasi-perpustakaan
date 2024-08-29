@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/other/navbar";
 import { Sidebar } from "@/components/other/sidebar";
@@ -6,8 +6,8 @@ import { CategoryTable } from "./category-table";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils"
-import { useSearchParams  } from 'next/navigation';
+import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 import {
   Form,
   FormControl,
@@ -21,15 +21,17 @@ import { PostCategory } from "../../../api/fetch/postCategory";
 import { useEffect, useState } from "react";
 import { GetCategoryById } from "../../../api/fetch/getCategoryById";
 import { updateCategory } from "../../../api/fetch/updateCategory";
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   kategori: z.string().min(2).max(255),
 });
 
 export default function Category() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const edit = searchParams.get('edit')
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const edit = searchParams.get("edit");
+  const { toast } = useToast();
   const [refreshTable, setRefreshTable] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,9 +47,14 @@ export default function Category() {
       const fetchCategoryData = async () => {
         try {
           const category = await GetCategoryById(edit);
-          form.setValue('kategori', category.nama);
+          form.setValue("kategori", category.nama);
         } catch (error) {
-          console.error("Error fetching category:", error);
+          toast({
+            title: "Error fetching category",
+            description:
+              (error as Error).message || "An unknown error occurred",
+            variant: "destructive",
+          });
         }
       };
 
@@ -56,21 +63,25 @@ export default function Category() {
   }, [isEdit, edit]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-     try {
-        if (isEdit && edit) {
-            await updateCategory(edit, values.kategori);
-            router.push('/category');
-            setRefreshTable((prev) => !prev);
-            form.reset();
-            return;
-        }
-        await PostCategory(values.kategori);
+    try {
+      if (isEdit && edit) {
+        await updateCategory(edit, values.kategori);
+        router.push("/category");
         setRefreshTable((prev) => !prev);
         form.reset();
+        return;
+      }
+      await PostCategory(values.kategori);
+      setRefreshTable((prev) => !prev);
+      form.reset();
     } catch (error) {
-        console.error("Error posting category:", error);
-     }
-}
+      toast({
+        title: "Error fetching category",
+        description: (error as Error).message || "An unknown error occurred",
+        variant: "destructive",
+      });
+    }
+  }
 
   return (
     <>
@@ -78,23 +89,29 @@ export default function Category() {
       <main className="min-h-screen ml-[240px] bg-gray-100">
         <Navbar />
         <div className="p-8">
-          <h1 className="text-2xl font-semibold text-gray-800 mb-6">Manage Categories</h1>
+          <h1 className="text-2xl font-semibold text-gray-800 mb-6">
+            Manage Categories
+          </h1>
           {isEdit && (
             <div className="bg-yellow-100 text-yellow-800 p-4 rounded-md mb-4 flex justify-between items-center">
-                You are editing a category
-                <Button variant={'destructive'}
+              You are editing a category
+              <Button
+                variant={"destructive"}
                 onClick={() => {
-                    router.push('/category')
-                    form.reset()
+                  router.push("/category");
+                  form.reset();
                 }}
-                >
-                    X
-                </Button>                
-                </div>
-                )}
+              >
+                X
+              </Button>
+            </div>
+          )}
           <div className="bg-white shadow-md rounded-lg p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="kategori"
@@ -113,7 +130,15 @@ export default function Category() {
                 />
                 <Button
                   type="submit"
-                  className={cn("w-full", "text-white", isEdit ? "bg-amber-400 hover:bg-amber-500" : "bg-blue-400 hover:bg-blue-500", "transition", "duration-300")}
+                  className={cn(
+                    "w-full",
+                    "text-white",
+                    isEdit
+                      ? "bg-amber-400 hover:bg-amber-500"
+                      : " ",
+                    "transition",
+                    "duration-300"
+                  )}
                 >
                   Submit
                 </Button>

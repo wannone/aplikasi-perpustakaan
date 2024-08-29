@@ -6,6 +6,7 @@ use App\Http\Controllers\API\BukuController;
 use App\Http\Controllers\API\KategoriController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RolesController;
+use App\Http\Controllers\API\PeminjamanController;
 
 Route::middleware('auth:api')->get('/auth', function (Request $request) {
     return $request->user();
@@ -46,3 +47,17 @@ Route::put('/user/{id}', [UserController::class, 'update']);
 Route::delete('/user/{id}', [UserController::class, 'destroy']);
 
 Route::get('/roles', [RolesController::class, 'index']);
+
+Route::get('/peminjaman', [PeminjamanController::class, 'index']);
+
+Route::get('/peminjaman/onRent', [PeminjamanController::class, 'showOnRent']);
+
+Route::get('/peminjaman/peminjam/{id}', [PeminjamanController::class, 'showByPeminjam']);
+
+Route::get('/peminjaman/petugas/{id}', [PeminjamanController::class, 'showByPetugas']);
+
+Route::get('peminjaman/{id}', [PeminjamanController::class, 'show']);
+
+Route::post('/peminjaman', [PeminjamanController::class, 'store']);
+
+Route::put('/peminjaman/{id}', [PeminjamanController::class, 'update']);

@@ -13,12 +13,19 @@ class RolesController extends Controller
      */
     public function index()
     {
-        $roles = roles::get();
+        try {
+            $roles = roles::get();
 
         return response()->json([
             'status' => 'success',
             'data' => $roles,
         ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

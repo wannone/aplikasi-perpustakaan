@@ -7,8 +7,13 @@ export const updateCategory = async (id: string, nama: string) => {
             },
             body: JSON.stringify({ nama }),
         });
-        const data = await response.json();
-        return data;
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error('Error updating book: ' + result.message);
+        }
+
+        return result;
     } catch (error) {
         throw new Error('Error fetching data: ' + error);
     }

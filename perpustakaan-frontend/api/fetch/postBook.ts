@@ -1,15 +1,17 @@
-import { BookPost } from "../model/book";
-
-export const PostBook = async (data: BookPost) => {
+export const PostBook = async (data: FormData) => {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/buku`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'accept': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: data
         });
         const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error('Error updating book: ' + result.message);
+        }
         return result;
     } catch (error) {
         throw new Error('Error fetching data: ' + error);

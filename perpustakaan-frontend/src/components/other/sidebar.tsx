@@ -14,7 +14,7 @@ export const Sidebar = () => {
         <Button variant="link"
         onClick={() => router.push('/')}
         className="text-left hover:bg-accent hover:text-accent-foreground px-4 py-2 rounded-md transition duration-300">
-          Dashboard
+          Catalog
         </Button>
         <Button variant="link" 
         onClick={() => router.push('/book')}
@@ -26,6 +26,12 @@ export const Sidebar = () => {
         className="text-left hover:bg-accent hover:text-accent-foreground px-4 py-2 rounded-md transition duration-300"
         >
           Categories
+        </Button>
+        <Button variant="link" 
+        onClick={() => router.push('/rent')}
+        className="text-left hover:bg-accent hover:text-accent-foreground px-4 py-2 rounded-md transition duration-300"
+        >
+          Rent
         </Button>
         <Button variant="link" 
         onClick={() => router.push('/user')}

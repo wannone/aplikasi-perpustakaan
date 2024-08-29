@@ -8,22 +8,39 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table";
+  import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog";
   import { Button } from "@/components/ui/button";
-  import { Category } from "../../../api/model/category";
+  import { CategoryModel } from "../../../api/model/category";
   import { GetAllCategory } from "../../../api/fetch/getAllCategory";
 import { useEffect, useState } from "react";
 import { DeleteCategory } from "../../../api/fetch/deleteCategory";
+import { useToast } from '@/components/ui/use-toast';
   
   export const CategoryTable = ({ refreshTable }: { refreshTable: boolean }) => {
-    const [data, setData] = useState<Category[]>([]);
+    const [data, setData] = useState<CategoryModel[]>([]);
     const router = useRouter();
+    const {toast} = useToast();
 
     const fetchCategory = async () => {
         try {
           const data = await GetAllCategory();
           setData(data);
         } catch (error) {
-          console.error("Error fetching category:", error);
+          toast({
+            title: "Error fetching category",
+            description: (error as Error).message || "An unknown error occurred",
+            variant: "destructive"
+        });
         }
       };
 
@@ -36,8 +53,12 @@ import { DeleteCategory } from "../../../api/fetch/deleteCategory";
             await DeleteCategory(id);
             fetchCategory();
         } catch (error) {
-            console.error("Error deleting category:", error);
-        }
+          toast({
+            title: "Error deleting category",
+            description: (error as Error).message || "An unknown error occurred",
+            variant: "destructive"
+        });
+                }
     };
 
     const handleEdit = async (id: number) => {
@@ -76,16 +97,41 @@ import { DeleteCategory } from "../../../api/fetch/deleteCategory";
                   {category.is_available ? "Available" : "Not Available"}
                 </TableCell>
                 <TableCell className="px-4 py-2 flex gap-2 justify-end">
-                  <Button variant="default" className="text-sm px-3 py-1.5"
+                  <Button variant="default" className="text-sm px-3 py-1.5 bg-amber-400 hover:bg-amber-500"
                     onClick={() => handleEdit(category.kategori_id)}
                   >
                     Edit
                   </Button>
-                  <Button variant="destructive" className="text-sm px-3 py-1.5"
+                  <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="text-sm px-3 py-1.5"
+                    >
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete the category.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="text-sm px-3 py-1.5 bg-red-500 hover:bg-red-600"
                     onClick={() => handleDelete(category.kategori_id)}
-                  >
-                    Delete
-                  </Button>
+                    >
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}
@@ -94,4 +140,3 @@ import { DeleteCategory } from "../../../api/fetch/deleteCategory";
       </div>
     );
   };
-  

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Buku;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class BukuController extends Controller
 {
@@ -13,28 +15,34 @@ class BukuController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-{
-    $buku = Buku::with('kategori')->get();
+    {
+        try {
+            $buku = Buku::with('kategori')->get();
 
-    // Ubah output untuk menyertakan kategori_name
-    $buku = $buku->map(function($item) {
-        return [
-            'buku_id' => $item->buku_id,
-            'nama' => $item->nama,
-            'kategori' => $item->kategori->nama, // Ambil nama kategori
-            'isbn' => $item->isbn,
-            'pengarang' => $item->pengarang,
-            'sinopsis' => $item->sinopsis,
-            'stok' => $item->stok,
-            'foto' => $item->foto,
-        ];
-    });
+            $buku = $buku->map(function($item) {
+                return [
+                    'buku_id' => $item->buku_id,
+                    'nama' => $item->nama,
+                    'kategori' => $item->kategori->nama, 
+                    'isbn' => $item->isbn,
+                    'pengarang' => $item->pengarang,
+                    'sinopsis' => $item->sinopsis,
+                    'stok' => $item->stok,
+                    'foto' => $item->foto,
+                ];
+            });
 
-    return response()->json([
-        'status' => 'success',
-        'data' => $buku,
-    ]);
-}
+            return response()->json([
+                'status' => 'success',
+                'data' => $buku,
+        ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
 
     /**
@@ -50,41 +58,66 @@ class BukuController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'kategori_id' => 'required|exists:kategori,kategori_id',
+            'nama' => 'required|string|max:255',
+            'isbn' => 'required|string|max:255',
+            'pengarang' => 'required|string|max:255',
+            'sinopsis' => 'required',
+            'stok' => 'required|integer|min:1',
+            'foto' => 'required | image | max:2048',
+        ]);
+
         try {
-            $request->validate([
-                'kategori_id' => 'required|exists:kategori,kategori_id',
-                'nama' => 'required|string|max:255',
-                'isbn' => 'required|string|max:255',
-                'pengarang' => 'required|string|max:255',
-                'sinopsis' => 'required',
-                'stok' => 'required|integer|min:1',
-                'foto' => 'required|string|max:255',
-            ]);
-    
-            Buku::create($request->all());
+            if ($request->hasFile('foto')) {
+                $file = $request->file('foto');
+                $filename = time() . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('public/buku', $filename);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Warning: Foto buku tidak ditemukan',
+                ], 400);
+            }
+
+            DB::beginTransaction();
+
+            Buku::create(
+                [
+                    'kategori_id' => $request->kategori_id,
+                    'nama' => $request->nama,
+                    'isbn' => $request->isbn,
+                    'pengarang' => $request->pengarang,
+                    'sinopsis' => $request->sinopsis,
+                    'stok' => $request->stok,
+                    'foto' => $filename,
+                ]
+            );
 
             Kategori::where('kategori_id', $request->kategori_id)->update([
                 'is_available' => 1,
             ]);
+
+            DB::commit();
     
             return response()->json([
                 'status' => 'success',
                 'message' => 'Buku berhasil ditambahkan',
             ]);
 
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Handle database query exceptions (e.g., foreign key constraint failures)
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Database error: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
-    
+                'message' => 'Validation error: ' . $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            // Handle any other general exceptions
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
+            ], 500);
         }
     }
 
@@ -93,19 +126,27 @@ class BukuController extends Controller
      */
     public function show(int $id)
     {
-        $buku = Buku::find($id);
+        try {
+            $buku = Buku::find($id);
 
         if (!$buku) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Buku tidak ditemukan',
-            ], 404); // HTTP status code 404 for not found
+            ], 404); 
         }
 
         return response()->json([
             'status' => 'success',
             'data' => $buku,
         ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -122,15 +163,6 @@ class BukuController extends Controller
     public function update(Request $request, int $id)
     {
         try {
-            $buku = Buku::find($id);
-
-            if (!$buku) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Buku tidak ditemukan',
-                ], 404); // HTTP status code 404 for not found
-            }
-
             $request->validate([
                 'kategori_id' => 'required|exists:kategori,kategori_id',
                 'nama' => 'required|string|max:255',
@@ -138,30 +170,76 @@ class BukuController extends Controller
                 'pengarang' => 'required|string|max:255',
                 'sinopsis' => 'required',
                 'stok' => 'required|integer|min:0',
-                'foto' => 'required|string|max:255',
+                'foto' => 'nullable|image|max:2048',
             ]);
+    
+            DB::beginTransaction();
 
-            $buku->update($request->all());
+            $buku = Buku::find($id);
+    
+            if (!$buku) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Buku tidak ditemukan',
+                ], 404);
+            }
+    
+            $oldKategoriId = $buku->kategori_id;
+    
+            if ($request->hasFile('foto')) {
+                if ($buku->foto && Storage::exists('public/buku/' . $buku->foto)) {
+                    Storage::delete('public/buku/' . $buku->foto);
+                }
+        
+                $file = $request->file('foto');
+                $filename = time() . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('public/buku', $filename);
+        
+                $buku->foto = $filename;
+            }
+    
+            $buku->update([
+                'kategori_id' => $request->kategori_id,
+                'nama' => $request->nama,
+                'isbn' => $request->isbn,
+                'pengarang' => $request->pengarang,
+                'sinopsis' => $request->sinopsis,
+                'stok' => $request->stok,
+                'foto' => $buku->foto, 
+            ]);
+    
+            if (Buku::where('kategori_id', $oldKategoriId)->count() == 0) {
+                Kategori::where('kategori_id', $oldKategoriId)->update([
+                    'is_available' => 0,
+                ]);
+            }
+    
+            Kategori::where('kategori_id', $request->kategori_id)->update([
+                'is_available' => 1,
+            ]);
+    
+            DB::commit();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Buku berhasil diubah',
-            ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Handle database query exceptions (e.g., foreign key constraint failures)
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Database error: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
-    
+                'message' => 'Validation error: ' . $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            // Handle any other general exceptions
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
+            ], 500);
         }
     }
+    
 
     /**
      * Remove the specified resource from storage.
@@ -169,40 +247,42 @@ class BukuController extends Controller
     public function destroy(int $id)
     {
         try {
+
+            DB::beginTransaction();
+        
             $buku = Buku::find($id);
 
-        if (!$buku) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Buku tidak ditemukan',
-            ], 404); // HTTP status code 404 for not found
-        }
+            if (!$buku) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Buku tidak ditemukan',
+                ], 404);
+            }
 
-        if (Buku::where('kategori_id', $buku->kategori_id)->count() == 0) {
-            Kategori::where('kategori_id', $buku->kategori_id)->update([
-                'is_available' => 0,
+            if ($buku->foto && Storage::exists('public/buku/' . $buku->foto)) {
+                Storage::delete('public/buku/' . $buku->foto);
+            }
+        
+            $buku->delete();
+        
+            if (Buku::where('kategori_id', $buku->kategori_id)->count() == 0) {
+                Kategori::where('kategori_id', $buku->kategori_id)->update([
+                    'is_available' => 0,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Buku berhasil dihapus',
             ]);
-        }
-
-        $buku->delete();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Buku berhasil dihapus',
-        ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Handle database query exceptions (e.g., foreign key constraint failures)
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Database error: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
-    
         } catch (\Exception $e) {
-            // Handle any other general exceptions
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
+            ], 500);
         }
     }
 }

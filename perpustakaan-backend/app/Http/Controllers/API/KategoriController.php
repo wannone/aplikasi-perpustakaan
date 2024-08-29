@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\kategori;
+use App\Models\Kategori;
+use App\Models\Buku;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class KategoriController extends Controller
 {
@@ -13,12 +16,19 @@ class KategoriController extends Controller
      */
     public function index()
     {
-        $kategori = kategori::get();
+        try {
+            $kategori = kategori::get();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $kategori,
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'data' => $kategori,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -47,20 +57,19 @@ class KategoriController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Kategori berhasil ditambahkan',
-            ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Handle database query exceptions (e.g., foreign key constraint failures)
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Database error: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
-    
-        } catch (\Exception $e) {
-            // Handle any other general exceptions
+                'message' => 'Validation error: ' . $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
+        }  catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
+            ], 500);
         }
     }
 
@@ -69,19 +78,32 @@ class KategoriController extends Controller
      */
     public function show(int $id)
     {
-        $kategori = Kategori::find($id);
+        try {
+            $kategori = Kategori::find($id);
 
         if (!$kategori) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Kategori tidak ditemukan',
-            ], 404); // HTTP status code 404 for not found
+            ], 404);
         }
 
         return response()->json([
             'status' => 'success',
             'data' => $kategori,
-        ]);
+        ], 200);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database error: ' . $e->getMessage(),
+            ], 502);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -104,7 +126,7 @@ class KategoriController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Kategori tidak ditemukan',
-                ], 404); // HTTP status code 404 for not found
+                ], 404);
             }
 
             $request->validate([
@@ -118,58 +140,54 @@ class KategoriController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Kategori berhasil diubah',
-            ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Handle database query exceptions (e.g., foreign key constraint failures)
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Database error: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
-    
+            ], 200);
         } catch (\Exception $e) {
-            // Handle any other general exceptions
             return response()->json([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
+            ], 500);
         }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(int $id)
+    public function destroy(int $id, bool $check = true)
     {
         try {
+
+            DB::beginTransaction();
+
             $kategori = Kategori::find($id);
 
             if (!$kategori) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Kategori tidak ditemukan',
-                ], 404); // HTTP status code 404 for not found
+                ], 404);
+            }
+
+            if ($check && Buku::where('kategori_id', $id)->count() > 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Kategori masih memiliki buku',
+                ], 400);
             }
 
             $kategori->delete();
+
+            DB::commit();
     
             return response()->json([
                 'status' => 'success',
                 'message' => 'Kategori berhasil dihapus',
             ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Handle database query exceptions (e.g., foreign key constraint failures)
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Database error: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
-    
         } catch (\Exception $e) {
-            // Handle any other general exceptions
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
+            ], 500);
         }
-        
     }
 }

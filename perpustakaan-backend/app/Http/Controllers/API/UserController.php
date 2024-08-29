@@ -11,6 +11,8 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Illuminate\Support\Facades\DB;
+
 
 
 class UserController extends Controller
@@ -18,53 +20,65 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::with("role")->get();
+        try {
+            $users = User::with("role")->get();
 
-        $users = $users->map(function($item) {
-            return [
-                'user_id' => $item->user_id,
-                'role' => $item->role->nama,
-                'nama' => $item->nama,
-                'email' => $item->email,
-            ];
+            $users = $users->map(function($item) {
+                return [
+                    'user_id' => $item->user_id,
+                    'role' => $item->role->nama,
+                    'nama' => $item->nama,
+                    'email' => $item->email,
+                ];
         });
 
         return response()->json([
             'success' => true,
             'data'    => $users
         ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function login(Request $request)
     {
-        //set validation
-        $validator = Validator::make($request->all(), [
-            'email'     => 'required',
-            'password'  => 'required'
-        ]);
-
-        //if validation fails
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        //get credentials from request
-        $credentials = $request->only('email', 'password');
-
-        //if auth failed
-        if(!$token = auth()->guard('api')->attempt($credentials)) {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email'     => 'required',
+                'password'  => 'required'
+            ]);
+    
+            $credentials = $request->only('email', 'password');
+    
+            if(!$token = auth()->guard('api')->attempt($credentials)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email atau Password Anda salah'
+                ], 401);
+            }
+    
             return response()->json([
-                'success' => false,
-                'message' => 'Email atau Password Anda salah'
-            ], 401);
+                'success' => true,
+                'data'    => auth()->guard('api')->user(),    
+                'token'   => $token   
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation error: ' . $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
         }
-
-        //if auth success
-        return response()->json([
-            'success' => true,
-            'data'    => auth()->guard('api')->user(),    
-            'token'   => $token   
-        ], 200);
     }
 
     public function register(Request $request)
@@ -77,11 +91,6 @@ class UserController extends Controller
                 'role_id'   => 'required|exists:roles,role_id'
             ]);
     
-            //if validation fails
-            if ($validator->fails()) {
-                return response()->json($validator->errors(), 422);
-            }
-    
             //create user
             $user = User::create([
                 'nama'      => $request->nama,
@@ -90,27 +99,19 @@ class UserController extends Controller
                 'password'  => bcrypt($request->password)
             ]);
     
-            //return response JSON user is created
-            if($user) {
-                return response()->json([
-                    'data' => true,
-                    'user'    => $user,  
-                ], 201);
-            }
-    
-            //return JSON process insert failed 
             return response()->json([
-                'success' => false,
-            ], 409);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Handle database query exceptions (e.g., foreign key constraint failures)
+                'data' => true,
+                'user'    => $user,  
+            ], 200);
+            
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Database error: ' . $e->getMessage(),
-            ], 500); // HTTP status code 500 for server errors
-    
+                'message' => 'Validation error: ' . $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            // Handle any other general exceptions
             return response()->json([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
@@ -135,7 +136,8 @@ class UserController extends Controller
     }
 
     public function update(Request $request, int $id){
-        $user = User::find($id);
+        try {
+            $user = User::find($id);
 
         if ($user) {
 
@@ -156,11 +158,24 @@ class UserController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'User tidak ditemukan',
-        ], 404);    
+        ], 404);   
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation error: ' . $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function show (int $id) {
-        $user = User::find($id);
+        try {
+            $user = User::find($id);
     
         if ($user) {
             return response()->json([
@@ -168,11 +183,18 @@ class UserController extends Controller
                 'data'    => $user
             ]);
         }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function destroy(int $id)
     {
-        $user = User::find($id);
+        try {
+            $user = User::find($id);
 
         if ($user) {
             $user->delete();
@@ -187,5 +209,11 @@ class UserController extends Controller
             'success' => false,
             'message' => 'User tidak ditemukan',
         ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

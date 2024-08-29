@@ -13,6 +13,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -23,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { useEffect, useState } from "react";
@@ -33,6 +35,7 @@ import { PostBook } from "../../../api/fetch/postBook";
 import { getBookById } from "../../../api/fetch/getBookById";
 import { BookPostModel } from "../../../api/model/book";
 import { UpdateBook } from "../../../api/fetch/updateBook";
+import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
   nama: z.string().min(2).max(255),
@@ -41,7 +44,7 @@ const formSchema = z.object({
   pengarang: z.string().min(2).max(255),
   sinopsis: z.string().min(2),
   stok: z.coerce.number().min(1),
-  foto: z.string().min(2).max(255),
+  foto: z.any().optional(),
 });
 
 export default function Category() {
@@ -50,6 +53,7 @@ export default function Category() {
   const edit = searchParams.get("edit");
   const [refreshTable, setRefreshTable] = useState(false);
   const [category, setCategory] = useState<CategoryModel[]>([]);
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,7 +63,7 @@ export default function Category() {
       pengarang: "",
       sinopsis: "",
       stok: 0,
-      foto: "",
+      foto: null,
     },
   });
 
@@ -76,9 +80,12 @@ export default function Category() {
           form.setValue("pengarang", book.pengarang);
           form.setValue("sinopsis", book.sinopsis);
           form.setValue("stok", book.stok);
-          form.setValue("foto", book.foto);
         } catch (error) {
-          console.error("Error fetching category:", error);
+          toast({
+            title: "Error fetching book",
+            description: error as string,
+            variant: "destructive",
+          });
         }
       };
 
@@ -90,7 +97,11 @@ export default function Category() {
         const data = await GetAllCategory();
         setCategory(data);
       } catch (error) {
-        console.error("Error fetching category:", error);
+        toast({
+          title: "Error fetching category",
+          description: (error as Error).message || "An unknown error occurred",
+          variant: "destructive"
+      });
       }
     };
 
@@ -99,18 +110,39 @@ export default function Category() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      const formData = new FormData();
+    formData.append("nama", values.nama);
+    formData.append("kategori_id", values.kategori_id.toString());
+    formData.append("isbn", values.isbn);
+    formData.append("pengarang", values.pengarang);
+    formData.append("sinopsis", values.sinopsis);
+    formData.append("stok", values.stok.toString());
+    if (values.foto) {
+      formData.append("foto", values.foto);
+    }
+
+    //Debug: log FormData contents
+    // for (let [key, value] of formData.entries()) {
+    //   console.log(`${key}: ${value}`);
+    // }
       if (isEdit && edit) {
-        await UpdateBook(edit, values);
+        await UpdateBook(edit, formData);
         router.push("/book");
         setRefreshTable((prev) => !prev);
         form.reset();
+        form.setValue("foto", null);
         return;
       }
-      await PostBook(values);
+      await PostBook(formData);
       setRefreshTable((prev) => !prev);
       form.reset();
+      form.setValue("foto", null);
     } catch (error) {
-      console.error("Error posting category:", error);
+      toast({
+        title: "Error fetching category",
+        description: (error as Error).message || "An unknown error occurred",
+        variant: "destructive"
+    });
     }
   }
 
@@ -148,6 +180,7 @@ export default function Category() {
                   name="nama"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Name</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter Name"
@@ -164,6 +197,7 @@ export default function Category() {
                   name="kategori_id"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Category</FormLabel>
                       <FormControl>
                         <Select
                           onValueChange={field.onChange}
@@ -197,6 +231,7 @@ export default function Category() {
                   name="isbn"
                   render={({ field }) => (
                     <FormItem>
+                                            <FormLabel>ISBN</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter ISBN"
@@ -213,6 +248,7 @@ export default function Category() {
                   name="pengarang"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Author</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter Author"
@@ -229,6 +265,7 @@ export default function Category() {
                   name="sinopsis"
                   render={({ field }) => (
                     <FormItem>
+                    <FormLabel>Synopsis</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Enter synopsis"
@@ -245,6 +282,7 @@ export default function Category() {
                   name="stok"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Stock</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter stock"
@@ -263,10 +301,18 @@ export default function Category() {
                   name="foto"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Image</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Enter image url"
-                          {...field}
+                          placeholder="Upload Image"
+                          type="file"
+                          accept="image/png, image/jpeg, image/jpg"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              field.onChange(file);
+                            }
+                          }}
                           className="border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </FormControl>
@@ -281,7 +327,7 @@ export default function Category() {
                     "text-white",
                     isEdit
                       ? "bg-amber-400 hover:bg-amber-500"
-                      : "bg-blue-400 hover:bg-blue-500",
+                      : " ",
                     "transition",
                     "duration-300"
                   )}

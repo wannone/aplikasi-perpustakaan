@@ -12,6 +12,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -123,6 +124,7 @@ export default function User() {
                       name="nama"
                       render={({ field }) => (
                         <FormItem>
+                          <FormLabel>Name</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Enter Name"
@@ -139,6 +141,7 @@ export default function User() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Enter Email"
@@ -155,6 +158,7 @@ export default function User() {
                       name="role_id"
                       render={({ field }) => (
                         <FormItem>
+                          <FormLabel>Role</FormLabel>
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
@@ -195,7 +199,7 @@ export default function User() {
                         "text-white",
                         isEdit
                           ? "bg-amber-400 hover:bg-amber-500"
-                          : "bg-blue-400 hover:bg-blue-500",
+                          : " ",
                         "transition",
                         "duration-300"
                       )}
