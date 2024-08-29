@@ -36,10 +36,11 @@ export default function Home() {
         setBooks(book);
         setCategories(categories);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
         toast({
-          title: "Error fetching category",
-          description: (error as Error).message || "An unknown error occurred",
-          variant: "destructive",
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
         });
       } finally {
         setLoading(false);

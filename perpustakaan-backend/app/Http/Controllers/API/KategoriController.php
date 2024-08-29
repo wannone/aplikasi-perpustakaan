@@ -181,7 +181,7 @@ class KategoriController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Kategori berhasil dihapus',
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

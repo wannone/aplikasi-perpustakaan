@@ -127,16 +127,17 @@ export function BookTable() {
                 fetchBooks();
                 if (request) {
                     toast({
-                        title: "Book rented successfully",
-                        description: "You have successfully rented the book",
+                        title: "Success",
+                        description: "Rent Book Success",
                     });
                 }
             } catch (error) {
-                toast({
-                    title: "Error renting book",
-                    description: (error as Error).message || "An unknown error occurred",
-                    variant: "destructive",
-                });
+              const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+              toast({
+                  title: "Error",
+                  description: errorMessage,
+                  variant: "destructive",
+              });
             }
          };
         return (
@@ -219,12 +220,11 @@ export function BookTable() {
       const data = await GetAllBooks();
       setData(data);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       toast({
-        title: "Error",
-        description:
-          (error as Error).message ||
-          "An unknown error occurred while fetching books.",
-        variant: "destructive",
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
       });
     }
   };

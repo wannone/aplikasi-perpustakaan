@@ -49,11 +49,11 @@ export default function Category() {
           const category = await GetCategoryById(edit);
           form.setValue("kategori", category.nama);
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
           toast({
-            title: "Error fetching category",
-            description:
-              (error as Error).message || "An unknown error occurred",
-            variant: "destructive",
+              title: "Error",
+              description: errorMessage,
+              variant: "destructive",
           });
         }
       };
@@ -65,20 +65,33 @@ export default function Category() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       if (isEdit && edit) {
-        await updateCategory(edit, values.kategori);
-        router.push("/category");
-        setRefreshTable((prev) => !prev);
-        form.reset();
+        const request = await updateCategory(edit, values.kategori);
+        if (request) {
+          toast({
+            title: "Success",
+            description: "Edit Category Success"
+          })
+          router.push("/category");
+          setRefreshTable((prev) => !prev);
+          form.reset();
+        }
         return;
       }
-      await PostCategory(values.kategori);
-      setRefreshTable((prev) => !prev);
-      form.reset();
+      const request = await PostCategory(values.kategori);
+      if (request) {
+        toast({
+          title: "Success",
+          description: "Add Category Success"
+        })
+        setRefreshTable((prev) => !prev);
+        form.reset();
+      }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       toast({
-        title: "Error fetching category",
-        description: (error as Error).message || "An unknown error occurred",
-        variant: "destructive",
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
       });
     }
   }

@@ -10,11 +10,15 @@ export const PostCategory = async (nama: string) => {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error('Error updating book: ' + result.message);
+            throw new Error(result.message);
         }
         
         return result;
     } catch (error) {
-        throw new Error('Error fetching data: ' + error);
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        } else {
+            throw new Error("An unknown error occurred");
+        }
     }
 }

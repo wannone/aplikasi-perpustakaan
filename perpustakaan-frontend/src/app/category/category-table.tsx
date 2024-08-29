@@ -36,10 +36,11 @@ import { useToast } from '@/components/ui/use-toast';
           const data = await GetAllCategory();
           setData(data);
         } catch (error) {
-          toast({
-            title: "Error fetching category",
-            description: (error as Error).message || "An unknown error occurred",
-            variant: "destructive"
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
         });
         }
       };
@@ -50,14 +51,21 @@ import { useToast } from '@/components/ui/use-toast';
 
     const handleDelete = async (id: number) => {
         try {
-            await DeleteCategory(id);
-            fetchCategory();
+            const request = await DeleteCategory(id);
+            if (request) {
+              toast({
+                title: "Success",
+                description: "Delete Category Success"
+              })
+              fetchCategory();
+            }
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
           toast({
-            title: "Error deleting category",
-            description: (error as Error).message || "An unknown error occurred",
-            variant: "destructive"
-        });
+              title: "Error",
+              description: errorMessage,
+              variant: "destructive",
+          });
                 }
     };
 

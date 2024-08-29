@@ -29,10 +29,11 @@ export default function Detail() {
           setCategory(category.nama);
           setBook(book);
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
           toast({
-            title: "Error fetching book",
-            description: error as string,
-            variant: "destructive",
+              title: "Error",
+              description: errorMessage,
+              variant: "destructive",
           });
         } 
       };

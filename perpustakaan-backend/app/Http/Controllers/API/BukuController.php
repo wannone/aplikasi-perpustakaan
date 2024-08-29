@@ -103,7 +103,7 @@ class BukuController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Buku berhasil ditambahkan',
-            ]);
+            ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -276,7 +276,7 @@ class BukuController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Buku berhasil dihapus',
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

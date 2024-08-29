@@ -1,18 +1,25 @@
-export const PostBook = async (data: FormData) => {
+export const getAuth = async (cookie: string) => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/buku`, {
-            method: 'POST',
+        if (!cookie) {
+            throw new Error("Unauthorized");
+        }
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/auth`, {
+            method: "GET",
             headers: {
-                'accept': 'application/json'
-            },
-            body: data
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${cookie}`
+            }
         });
+
         const result = await response.json();
 
         if (!response.ok) {
             throw new Error(result.message);
         }
+
         return result;
+        
     } catch (error) {
         if (error instanceof Error) {
             throw new Error(error.message);
@@ -20,4 +27,4 @@ export const PostBook = async (data: FormData) => {
             throw new Error("An unknown error occurred");
         }
     }
-}
+} 

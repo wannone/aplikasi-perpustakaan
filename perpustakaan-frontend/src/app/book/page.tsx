@@ -81,11 +81,12 @@ export default function Category() {
           form.setValue("sinopsis", book.sinopsis);
           form.setValue("stok", book.stok);
         } catch (error) {
-          toast({
-            title: "Error fetching book",
-            description: error as string,
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        toast({
+            title: "Error",
+            description: errorMessage,
             variant: "destructive",
-          });
+        });
         }
       };
 
@@ -97,11 +98,12 @@ export default function Category() {
         const data = await GetAllCategory();
         setCategory(data);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
         toast({
-          title: "Error fetching category",
-          description: (error as Error).message || "An unknown error occurred",
-          variant: "destructive"
-      });
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+        });
       }
     };
 
@@ -126,23 +128,36 @@ export default function Category() {
     //   console.log(`${key}: ${value}`);
     // }
       if (isEdit && edit) {
-        await UpdateBook(edit, formData);
-        router.push("/book");
+        const request = await UpdateBook(edit, formData);
+        if (request) {
+          toast({
+            title: "Success",
+            description: "Edit Book Success"
+          });
+          router.push("/book");
+          setRefreshTable((prev) => !prev);
+          form.reset();
+          form.setValue("foto", null);
+        }
+        return;
+      }
+      const request = await PostBook(formData);
+      if (request) {
+        toast({
+          title: "Success",
+          description: "Add Book Success"
+        })
         setRefreshTable((prev) => !prev);
         form.reset();
         form.setValue("foto", null);
-        return;
       }
-      await PostBook(formData);
-      setRefreshTable((prev) => !prev);
-      form.reset();
-      form.setValue("foto", null);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       toast({
-        title: "Error fetching category",
-        description: (error as Error).message || "An unknown error occurred",
-        variant: "destructive"
-    });
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+      });
     }
   }
 

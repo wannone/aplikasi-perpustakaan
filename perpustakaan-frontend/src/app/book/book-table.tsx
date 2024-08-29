@@ -157,13 +157,12 @@ export function BookTable({ refreshTable }: { refreshTable: boolean }) {
       const data = await GetAllBooks();
       setData(data);
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          (error as Error).message ||
-          "An unknown error occurred while fetching books.",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+        });
     }
   };
 
@@ -177,14 +176,21 @@ export function BookTable({ refreshTable }: { refreshTable: boolean }) {
 
   const handleDelete = async (id: number) => {
     try {
-      await DeleteBook(id);
-      fetchBooks(); // Refresh the table after deletion
+      const request = await DeleteBook(id);
+      if (request) {
+        toast({
+          title: "Success",
+          description: "Delete Book Success",
+        });
+        fetchBooks();
+      }
     } catch (error) {
-      toast({
-        title: "Error deleting book",
-        description: (error as Error).message || "An unknown error occurred",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+        });
     }
   };
 

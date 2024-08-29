@@ -6,11 +6,14 @@ export const DeleteCategory = async (id: number) => {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error('Error deleting category: ' + result.message);
+            throw new Error(result.message);
         }
 
         return result;
     } catch (error) {
-        throw new Error('Error deleting category: ' + error);
-    }
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        } else {
+            throw new Error("An unknown error occurred");
+        }    }
 };

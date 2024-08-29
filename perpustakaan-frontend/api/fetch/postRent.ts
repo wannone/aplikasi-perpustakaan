@@ -15,13 +15,19 @@ export const PostRent = async (email: string, bukuId: string, duration: string) 
             }),
         });
 
+        const result = await response.json();
+
         if (!response.ok) {
-            throw new Error('Error post rent: ' + response.statusText);
+            throw new Error(result.message);
         }
 
-        return await response.json();
+        return result
 
     } catch (error) {
-        throw new Error('Error post rent: ' + error);
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        } else {
+            throw new Error("An unknown error occurred");
+        }
     }
 }
