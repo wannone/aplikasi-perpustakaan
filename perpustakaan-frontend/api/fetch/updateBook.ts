@@ -1,10 +1,10 @@
-export const UpdateBook = async (id: string, data: FormData) => {
+export const UpdateBook = async (id: string, data: FormData, token: string) => {
     try {
         //throw new Error(String(data.get('nama')));
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/buku/${id}`, {
             method: 'POST',
             headers: {
-                'accept': 'application/json', 
+                'Authorization': `Bearer ${token}`
             },
         body: data,
         });

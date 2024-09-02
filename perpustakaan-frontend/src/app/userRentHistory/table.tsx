@@ -11,17 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,43 +23,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { onRentModel } from "../../../api/model/book";
-import { GetOnRent } from "../../../api/fetch/getOnRent";
+import { RentHistoryModel } from "../../../api/model/book";
 import { useToast } from "@/components/ui/use-toast";
-import { PostRent } from "../../../api/fetch/postRent";
 import { useState, useEffect } from "react";
-import React from "react";
 import { getCookie } from "cookies-next";
-import { UpdateReturn } from "../../../api/fetch/updateReturn";
+import { getAuth } from "../../../api/fetch/getAuth";
+import { userRentHistory } from "../../../api/fetch/userRentHistory";
+import { cn } from "@/lib/utils";
 
 export function BookTable() {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     []
   );
-  const [data, setData] = React.useState<onRentModel[]>([]);
+  const [data, setData] = useState<RentHistoryModel[]>([]);
   const { toast } = useToast();
-  const columns: ColumnDef<onRentModel>[] = [
+  const token = getCookie("token");
+  const columns: ColumnDef<RentHistoryModel>[] = [
     {
       accessorKey: "peminjaman_id",
       header: "ID",
       cell: ({ row }) => <div>{row.getValue("peminjaman_id")}</div>,
-    },
-    {
-      accessorKey: "isbn",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-left"
-        >
-          ISBN
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="lowercase">{row.getValue("isbn")}</div>
-      ),
     },
     {
       accessorKey: "buku",
@@ -88,38 +62,6 @@ export function BookTable() {
       ),
     },
     {
-      accessorKey: "pengarang",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className=""
-        >
-          Author
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("pengarang")}</div>
-      ),
-    },
-    {
-      accessorKey: "peminjam",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-left"
-        >
-          Borrower
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="lowercase">{row.getValue("peminjam")}</div>
-      ),
-    },
-    {
       accessorKey: "petugas",
       header: ({ column }) => (
         <Button
@@ -127,7 +69,7 @@ export function BookTable() {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="text-left"
         >
-          Librarian
+            Librarian
           <CaretSortIcon className="ml-2 h-4 w-4" />
         </Button>
       ),
@@ -143,7 +85,7 @@ export function BookTable() {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="text-left"
         >
-          Rent Date
+            Rent Date
           <CaretSortIcon className="ml-2 h-4 w-4" />
         </Button>
       ),
@@ -153,68 +95,43 @@ export function BookTable() {
     },
     {
       accessorKey: "durasi_peminjaman_in_days",
-      header: "Durasi Peminjaman",
+      header: "Duration",
       cell: ({ row }) => <div>{row.getValue("durasi_peminjaman_in_days")}</div>,
     },
     {
-      accessorKey: "actions",
-      header: "Action",
-      cell: ({ row }) => {
-        const token = getCookie('token');
-
-        const handleReturn = async (id: number) => {
-            console.log(id);
-            try {
-                if(token){
-                    const request = await UpdateReturn(id, token);
-
-                    if(request){
-                        toast({
-                            title: "Success",
-                            description: "Book has been returned",
-                        });
-                        fetchOnRent();
-                    }
-                }
-            } catch (error) {
-                const errorMessage =
-                    error instanceof Error ? error.message : "An unknown error occurred";
-                toast({
-                    title: "Error",
-                    description: errorMessage,
-                    variant: "destructive",
-                });
-                
-            }
-        }
-        return (
-          <>
-            <AlertDialog>
-              <AlertDialogTrigger>
-                <Button variant="outline" size="sm">
-                  Return
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure to return this book?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will return the book to the library
-                    and record it.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => handleReturn(row.getValue("peminjaman_id"))}
-                  >Continue</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
-        );
+        accessorKey: "waktu_pengembalian",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="text-left"
+          >
+            Return Date
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="lowercase">{row.getValue("waktu_pengembalian") ?? "loan"}</div>
+        ),
       },
-    },
+      {
+        accessorKey: "total_keterlambatan_in_days",
+        header: "Late",
+        cell: ({ row }) => <div>{row.getValue("waktu_pengembalian") ? row.getValue("total_keterlambatan_in_days") : "-"}</div>,
+      },
+      {
+        accessorKey: "total_denda",
+        header: "Fine",
+        cell: ({ row }) => <div>{row.getValue("waktu_pengembalian") ? row.getValue("total_denda") : "-"}</div>,
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => {
+            const status = row.getValue("waktu_pengembalian") ? "Returned" : "On Loan";
+            return <Label className={cn(status == "Returned" ? "text-green-500" : "text-amber-500")}>{status}</Label>;
+        },
+      }
   ];
   const table = useReactTable({
     data,
@@ -231,10 +148,15 @@ export function BookTable() {
     },
   });
 
-  const fetchOnRent = async () => {
+  const fetchRentHistory = async () => {
     try {
-      const data = await GetOnRent();
-      setData(data);
+      if (token) {
+        const auth = await getAuth(token);
+        if (auth){
+            const userRent = await userRentHistory(auth.user_id);
+            setData(userRent);
+        }
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "An unknown error occurred";
@@ -247,8 +169,8 @@ export function BookTable() {
   };
 
   useEffect(() => {
-    fetchOnRent();
-  }, [toast]);
+    fetchRentHistory();
+  }, []);
 
   return (
     <div className="w-full">

@@ -1,25 +1,28 @@
-import { UserPostModel } from "../model/user";
+import { RegisterModel } from "../model/user";
 
-export const UpdateUser = async (data: UserPostModel, id: string, token: string) => {
+export const Register = async (data: RegisterModel) => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/user/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/register`, {
             method: 'POST',
             headers: {
+                'accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 nama: data.nama,
                 email: data.email,
-                role_id: data.role_id
-        })});
+                password: data.password,
+                password_confirmation: data.password_confirmation,
+                role_id: 3
+            }),
+        });
 
         const result = await response.json();
 
         if (!response.ok) {
             throw new Error(result.message);
         }
-        
+
         return result;
     } catch (error) {
         if (error instanceof Error) {

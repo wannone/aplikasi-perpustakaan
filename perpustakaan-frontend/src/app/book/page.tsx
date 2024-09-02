@@ -36,6 +36,7 @@ import { getBookById } from "../../../api/fetch/getBookById";
 import { BookPostModel } from "../../../api/model/book";
 import { UpdateBook } from "../../../api/fetch/updateBook";
 import { useToast } from '@/components/ui/use-toast';
+import { getCookie } from "cookies-next";
 
 const formSchema = z.object({
   nama: z.string().min(2).max(255),
@@ -54,6 +55,7 @@ export default function Category() {
   const [refreshTable, setRefreshTable] = useState(false);
   const [category, setCategory] = useState<CategoryModel[]>([]);
   const { toast } = useToast();
+  const token = getCookie('token');
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -127,8 +129,9 @@ export default function Category() {
     // for (let [key, value] of formData.entries()) {
     //   console.log(`${key}: ${value}`);
     // }
+    if(token){
       if (isEdit && edit) {
-        const request = await UpdateBook(edit, formData);
+          const request = await UpdateBook(edit, formData, token);
         if (request) {
           toast({
             title: "Success",
@@ -141,7 +144,7 @@ export default function Category() {
         }
         return;
       }
-      const request = await PostBook(formData);
+        const request = await PostBook(formData, token);
       if (request) {
         toast({
           title: "Success",
@@ -150,6 +153,7 @@ export default function Category() {
         setRefreshTable((prev) => !prev);
         form.reset();
         form.setValue("foto", null);
+      }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -163,9 +167,6 @@ export default function Category() {
 
   return (
     <>
-      <Sidebar />
-      <main className="min-h-screen ml-[240px] bg-gray-100">
-        <Navbar />
         <div className="p-8">
           <h1 className="text-2xl font-semibold text-gray-800 mb-6">
             Manage Book
@@ -356,7 +357,6 @@ export default function Category() {
             <BookTable refreshTable={refreshTable} />
           </div>
         </div>
-      </main>
     </>
   );
 }

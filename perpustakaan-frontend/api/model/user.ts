@@ -15,3 +15,10 @@ export type RoleModel = {
     role_id: number;
     nama: string;
 }
+
+export type RegisterModel = {
+    nama: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+}

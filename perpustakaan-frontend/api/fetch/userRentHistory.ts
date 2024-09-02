@@ -1,11 +1,6 @@
-export const GetAllUser = async (token: string) => {
+export const userRentHistory = async (id: number) => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/user`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/peminjaman/peminjam/${id}`)
         const result = await response.json();
 
         if (!response.ok) {

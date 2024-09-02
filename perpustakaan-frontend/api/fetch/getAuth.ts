@@ -1,14 +1,10 @@
-export const getAuth = async (cookie: string) => {
+export const getAuth = async (token: string) => {
     try {
-        if (!cookie) {
-            throw new Error("Unauthorized");
-        }
-
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/auth`, {
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${cookie}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         });
 

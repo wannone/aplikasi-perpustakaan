@@ -100,7 +100,7 @@ class PeminjamanController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Peminjaman berhasil ditambahkan',
-                'data' => $peminjaman,
+                //'data' => $peminjaman,
             ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -170,7 +170,7 @@ class PeminjamanController extends Controller
                     'petugas' => $item->petugas->nama,
                     'buku' => $item->buku->nama,
                     'isbn' => $item->buku->isbn,
-                    'author' => $item->buku->pengarang,
+                    'pengarang' => $item->buku->pengarang,
                     'waktu_peminjaman' => $item->waktu_peminjaman,
                     'durasi_peminjaman_in_days' => $item->durasi_peminjaman_in_days,
                 ];
@@ -240,8 +240,8 @@ class PeminjamanController extends Controller
             $peminjaman = $peminjaman->map(function($item) {
                 return [
                     'peminjaman_id' => $item->peminjaman_id,
-                    'peminjam' => $item->peminjam->name,
-                    'petugas' => $item->petugas->name,
+                    'peminjam' => $item->peminjam->nama,
+                    'petugas' => $item->petugas->nama,
                     'buku' => $item->buku->nama,
                     'waktu_peminjaman' => $item->waktu_peminjaman,
                     'durasi_peminjaman_in_days' => $item->durasi_peminjaman_in_days,
@@ -317,7 +317,6 @@ class PeminjamanController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Peminjaman berhasil diupdate',
-                    'data' => $peminjaman,
                 ], 200);
                 }
 

@@ -18,3 +18,26 @@ export type BookPostModel = {
     stok: number;
     foto: string;
 }
+
+export type onRentModel = {
+    peminjaman_id: number;
+    peminjam: string;
+    petugas: string;
+    buku: string;
+    isbn: string;
+    pengarang: string;
+    waktu_peminjaman: string;
+    durasi_peminjaman_in_days: number;
+}
+
+export type RentHistoryModel = {
+    peminjaman_id: number;
+    peminjam: string;
+    petugas: string;
+    buku: string;
+    waktu_peminjaman: string;
+    durasi_peminjaman_in_days: number;
+    waktu_pengembalian: string;
+    total_keterlambatan_in_days: number;
+    total_denda: number;
+}

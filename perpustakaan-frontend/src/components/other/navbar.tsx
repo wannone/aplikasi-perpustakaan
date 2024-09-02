@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+'use client'
+import { ReactNode, useEffect, useState } from "react";
 import { getAuth } from "../../../api/fetch/getAuth";
 import { deleteCookie, getCookie } from "cookies-next";
 import { useToast } from "../ui/use-toast";
 import { logout } from "../../../api/fetch/logout";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
-export const Navbar = () => {
+export const Navbar = ({children}: { children: ReactNode }) => {
   const [data, setData] = useState<{nama : string, email: string}>({
     nama: "",
     email: "",
@@ -13,6 +14,7 @@ export const Navbar = () => {
   const token = getCookie("token");
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,7 +62,12 @@ export const Navbar = () => {
     }
   }
 
+  if (pathname === "/login" || pathname === "/register") {
+    return <>{children}</>;
+  }
+
     return (
+      <>
       <header className="sticky top-0 z-10 w-full bg-background/95 shadow-lg backdrop-blur-sm supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
         <div className="mx-4 sm:mx-8 flex h-16 items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -76,6 +83,8 @@ export const Navbar = () => {
           </button>
         </div>
       </header>
+      {children}
+      </>
     );
   }
   

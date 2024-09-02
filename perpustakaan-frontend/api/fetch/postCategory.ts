@@ -1,9 +1,10 @@
-export const PostCategory = async (nama: string) => {
+export const PostCategory = async (nama: string, token: string) => {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/kategori`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({ nama }),
         });

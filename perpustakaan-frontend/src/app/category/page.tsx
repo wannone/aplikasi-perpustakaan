@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import { GetCategoryById } from "../../../api/fetch/getCategoryById";
 import { updateCategory } from "../../../api/fetch/updateCategory";
 import { useToast } from "@/components/ui/use-toast";
+import { getCookie } from "cookies-next";
 
 const formSchema = z.object({
   kategori: z.string().min(2).max(255),
@@ -31,6 +32,7 @@ export default function Category() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const edit = searchParams.get("edit");
+  const token = getCookie('token');
   const { toast } = useToast();
   const [refreshTable, setRefreshTable] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -64,27 +66,29 @@ export default function Category() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      if (isEdit && edit) {
-        const request = await updateCategory(edit, values.kategori);
+      if(token){
+        if (isEdit && edit) {
+          const request = await updateCategory(edit, values.kategori, token);
+          if (request) {
+            toast({
+              title: "Success",
+              description: "Edit Category Success"
+            })
+            router.push("/category");
+            setRefreshTable((prev) => !prev);
+            form.reset();
+          }
+          return;
+        }
+        const request = await PostCategory(values.kategori, token);
         if (request) {
           toast({
             title: "Success",
-            description: "Edit Category Success"
+            description: "Add Category Success"
           })
-          router.push("/category");
           setRefreshTable((prev) => !prev);
           form.reset();
         }
-        return;
-      }
-      const request = await PostCategory(values.kategori);
-      if (request) {
-        toast({
-          title: "Success",
-          description: "Add Category Success"
-        })
-        setRefreshTable((prev) => !prev);
-        form.reset();
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -98,9 +102,6 @@ export default function Category() {
 
   return (
     <>
-      <Sidebar />
-      <main className="min-h-screen ml-[240px] bg-gray-100">
-        <Navbar />
         <div className="p-8">
           <h1 className="text-2xl font-semibold text-gray-800 mb-6">
             Manage Categories
@@ -162,7 +163,6 @@ export default function Category() {
             <CategoryTable refreshTable={refreshTable} />
           </div>
         </div>
-      </main>
     </>
   );
 }

@@ -58,17 +58,17 @@ class BukuController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'kategori_id' => 'required|exists:kategori,kategori_id',
-            'nama' => 'required|string|max:255',
-            'isbn' => 'required|string|max:255',
-            'pengarang' => 'required|string|max:255',
-            'sinopsis' => 'required',
-            'stok' => 'required|integer|min:1',
-            'foto' => 'required | image | max:2048',
-        ]);
-
         try {
+            $request->validate([
+                'kategori_id' => 'required|exists:kategori,kategori_id',
+                'nama' => 'required|string|max:255',
+                'isbn' => 'required|string|max:255',
+                'pengarang' => 'required|string|max:255',
+                'sinopsis' => 'required',
+                'stok' => 'required|integer|min:1',
+                'foto' => 'required | image | max:2048',
+            ]);
+
             if ($request->hasFile('foto')) {
                 $file = $request->file('foto');
                 $filename = time() . '.' . $file->getClientOriginalExtension();

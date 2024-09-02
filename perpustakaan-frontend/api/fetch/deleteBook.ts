@@ -1,7 +1,11 @@
-export const DeleteBook = async(id : number) => {
+export const DeleteBook = async(id : number, token: string) => {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/buku/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
         });
         const result = await response.json();
         if (!response.ok) {

@@ -23,17 +23,29 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { getCookie } from "cookies-next";
+import { DeleteUser } from "../../../api/fetch/deleteUser";
+import { useToast } from "@/components/ui/use-toast";
 
 export const UserTable = ({ refreshTable }: { refreshTable: boolean }) => {
   const [data, setData] = useState<UserModel[]>([]);
   const router = useRouter();
+  const token = getCookie('token');
+  const { toast } = useToast();
 
   const fetchUser = async () => {
     try {
-      const data = await GetAllUser();
+      if(token) {
+        const data = await GetAllUser(token);
       setData(data);
+      }
     } catch (error) {
-      console.error("Error fetching user:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+              toast({
+                  title: "Error",
+                  description: errorMessage,
+                  variant: "destructive",
+              });
     }
   };
 
@@ -43,10 +55,23 @@ export const UserTable = ({ refreshTable }: { refreshTable: boolean }) => {
 
   const handleDelete = async (id: number) => {
     try {
-      fetchUser();
+      if(token) {
+        const request = await DeleteUser(id, token);
+      if (request) {
+        toast({
+          title: "Success",
+          description: "Delete User Success"
+        })
+        fetchUser();
+      }
+      }
     } catch (error) {
-      console.error("Error deleting user:", error);
-    }
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+      });    }
   };
 
   const handleEdit = async (id: number) => {

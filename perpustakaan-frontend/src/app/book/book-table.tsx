@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { getCookie } from "cookies-next";
 
 export function BookTable({ refreshTable }: { refreshTable: boolean }) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -44,6 +45,7 @@ export function BookTable({ refreshTable }: { refreshTable: boolean }) {
   const [data, setData] = useState<BookModel[]>([]);
   const router = useRouter();
   const { toast } = useToast();
+  const token = getCookie('token');
   const columns: ColumnDef<BookModel>[] = [
     {
       accessorKey: "isbn",
@@ -176,13 +178,15 @@ export function BookTable({ refreshTable }: { refreshTable: boolean }) {
 
   const handleDelete = async (id: number) => {
     try {
-      const request = await DeleteBook(id);
+      if(token){
+        const request = await DeleteBook(id, token);
       if (request) {
         toast({
           title: "Success",
           description: "Delete Book Success",
         });
         fetchBooks();
+      }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

@@ -44,9 +44,6 @@ export default function Detail() {
 
   return (
     <>
-      <Sidebar />
-      <main className="min-h-screen ml-[240px] bg-gray-100">
-        <Navbar />
         <div className="p-6">
           {book ? (
             <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden flex">
@@ -89,7 +86,6 @@ export default function Detail() {
             <p className="text-center text-gray-500">Loading book details...</p>
           )}
         </div>
-      </main>
     </>
   );
 }

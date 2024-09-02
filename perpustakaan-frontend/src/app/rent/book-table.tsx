@@ -37,6 +37,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { PostRent } from "../../../api/fetch/postRent";
 import { useState, useEffect } from "react";
 import React from "react";
+import { getCookie } from "cookies-next";
 
 export function BookTable() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -86,7 +87,7 @@ export function BookTable() {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="text-left"
         >
-          Nama
+          Name
           <CaretSortIcon className="ml-2 h-4 w-4" />
         </Button>
       ),
@@ -121,15 +122,18 @@ export function BookTable() {
       cell: ({ row }) => {
         const [email, setEmail] = useState("");
         const [rentDuration, setRentDuration] = useState("");
+        const token = getCookie('token');
         const handleRent = async (email: string, bukuId: string, duration: string) => {
             try {
-                const request = await PostRent(email, bukuId, duration);
+                if(token){
+                  const request = await PostRent(email, bukuId, duration, token);
                 fetchBooks();
                 if (request) {
                     toast({
                         title: "Success",
                         description: "Rent Book Success",
                     });
+                }
                 }
             } catch (error) {
               const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -258,7 +262,7 @@ export function BookTable() {
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="px-4 py-2 text-left text-sm font-medium text-gray-700"
+                    className="py-2 text-sm font-medium text-gray-700 text-center"
                   >
                     {header.isPlaceholder
                       ? null
@@ -282,7 +286,7 @@ export function BookTable() {
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="px-4 py-2 text-sm text-gray-600"
+                      className="py-2 text-sm text-gray-600 text-center"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

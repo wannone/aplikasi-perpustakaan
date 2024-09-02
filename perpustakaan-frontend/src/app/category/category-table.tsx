@@ -25,11 +25,13 @@ import {
 import { useEffect, useState } from "react";
 import { DeleteCategory } from "../../../api/fetch/deleteCategory";
 import { useToast } from '@/components/ui/use-toast';
+import { getCookie } from 'cookies-next';
   
   export const CategoryTable = ({ refreshTable }: { refreshTable: boolean }) => {
     const [data, setData] = useState<CategoryModel[]>([]);
     const router = useRouter();
     const {toast} = useToast();
+    const token = getCookie('token');
 
     const fetchCategory = async () => {
         try {
@@ -51,13 +53,15 @@ import { useToast } from '@/components/ui/use-toast';
 
     const handleDelete = async (id: number) => {
         try {
-            const request = await DeleteCategory(id);
+            if(token) {
+              const request = await DeleteCategory(id, token);
             if (request) {
               toast({
                 title: "Success",
                 description: "Delete Category Success"
               })
               fetchCategory();
+            }
             }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

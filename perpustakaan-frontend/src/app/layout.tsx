@@ -3,6 +3,8 @@ import "./globals.css";
 import { Inter as FontSans } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
+import { Sidebar } from "@/components/other/sidebar";
+import { Navbar } from "@/components/other/navbar";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -10,7 +12,7 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: "Libary System",
+  title: "Library System",
 };
 
 export default function RootLayout({
@@ -26,7 +28,11 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        {children}
+        <Sidebar >
+          <Navbar >
+          {children}
+          </Navbar>
+        </Sidebar >
         <Toaster />
       </body>
     </html>

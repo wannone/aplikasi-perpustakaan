@@ -44,12 +44,12 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Roles::class, 'role_id');
     }
 
-    public function Peminjam()
+    public function peminjam()
     {
         return $this->hasMany(Peminjaman::class, 'peminjam_user_id');
     }
 
-    public function Petugas()
+    public function petugas()
     {
         return $this->hasMany(Peminjaman::class, 'petugas_user_id');
     }

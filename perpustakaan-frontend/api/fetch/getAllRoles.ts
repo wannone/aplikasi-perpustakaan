@@ -1,6 +1,11 @@
-export const GetAllRoles = async () => {
+export const GetAllRoles = async (token: string) => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/roles`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/roles`, {
+            headers:{
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
         const result = await response.json();
 
         if (!response.ok) {

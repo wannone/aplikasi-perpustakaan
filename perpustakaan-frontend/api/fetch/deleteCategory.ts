@@ -1,7 +1,11 @@
-export const DeleteCategory = async (id: number) => {
+export const DeleteCategory = async (id: number, token: string) => {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/kategori/${id}?check=true`, {
             method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
         });
         const result = await response.json();
 

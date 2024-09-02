@@ -66,9 +66,6 @@ export default function Home() {
 
   return (
     <>
-      <Sidebar />
-      <main className="min-h-screen ml-[240px] bg-gray-100">
-        <Navbar />
         <div className="p-8">
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row items-center justify-between mb-8">
@@ -145,7 +142,6 @@ export default function Home() {
             )}
           </div>
         </div>
-      </main>
     </>
   );
 }

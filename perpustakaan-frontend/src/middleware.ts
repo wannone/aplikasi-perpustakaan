@@ -18,6 +18,7 @@ export async function middleware(request: NextRequest) {
         }
 
         if((request.nextUrl.pathname.startsWith('/rent') || 
+        request.nextUrl.pathname.startsWith('/librarianRentHistory') ||
         request.nextUrl.pathname.startsWith('/book') || 
         request.nextUrl.pathname.startsWith('/category') ||
         request.nextUrl.pathname.startsWith('/return')) && 
@@ -34,7 +35,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/', '/book', '/book/:path*', '/category', '/category/:path*', '/detail', '/detail/:path*', 
+    matcher: ['/', '/book', '/book/:path*', '/category', '/category/:path*', '/detail', '/detail/:path*', '/librarianRentHistory', 
         '/rent', '/rent/:path*', '/user', '/user/:path*'
     ]
 };

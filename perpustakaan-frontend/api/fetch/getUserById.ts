@@ -1,6 +1,11 @@
-export const GetUserById = async (id: string) => {
+export const GetUserById = async (id: string, token: string) => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/user/${id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/user/${id}`, {
+            headers : {
+                'content-type': 'application/json',
+                'Authorization':`Bearer ${token}`
+            }
+        });
         const result = await response.json();
 
         if (!response.ok) {

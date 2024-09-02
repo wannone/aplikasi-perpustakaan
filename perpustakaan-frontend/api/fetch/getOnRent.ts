@@ -1,11 +1,6 @@
-export const GetAllUser = async (token: string) => {
+export const GetOnRent = async () => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/user`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASEAPI}/peminjaman/onRent`)
         const result = await response.json();
 
         if (!response.ok) {
@@ -20,4 +15,5 @@ export const GetAllUser = async (token: string) => {
             throw new Error("An unknown error occurred");
         }
     }
+
 }
